@@ -3,15 +3,13 @@ import numpy as np
 from pylsl import StreamInlet, resolve_stream
 
 class DataBuffer:
-    def __init__(self, num_channels, device_freq_hz, step_time_SI = 0.001, window_time_SI = 1.0,):
+    def __init__(self, num_channels, device_freq_hz, window_time_SI = 1.0,):
         self.num_chs = num_channels
         self.freq = device_freq_hz
-        self.step_time = step_time_SI
         self.window_time = window_time_SI
 
-        # compute window and step length in terms of NUMBER OF SAMPLES
+        # compute window length in terms of NUMBER OF SAMPLES
         self.window_len = self.freq * self.window_time
-        self.step_len = self.freq * self.step_time
 
         # create an internal deque that implements the sliding window structure
         self.sliding_window = deque(maxlen = self.window_len)
@@ -47,6 +45,18 @@ class DataBuffer:
         except Exception as e:
             print(f"Unexpected error during connection: {e}")
             raise
-
+    
+    def pull_step(self, step_time_SI = 0.01):
+        try:
+            self.step_time = step_time_SI
+            # compute step length in terms of NUMBER OF SAMPLES
+            self.step_len = self.freq * self.step_time
+            number_of_samples_tbc = self.step_len #tbc --> "to be collected"
+            while number_of_samples_tbc:
+                samples, _ = self.LSL_inlet.pull_chunk(max_samples=number_of_samples_tbc)
+                self.sliding_window.extend(samples)
+                number_of_samples_tbc -= len(samples)
+        except:
+            pass
 
  
