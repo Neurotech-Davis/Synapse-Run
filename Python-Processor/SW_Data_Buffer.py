@@ -18,7 +18,7 @@ class DataBuffer:
         try:
             self.streams = resolve_stream('type', type, timeout)
             if not self.streams:
-                raise TimeoutError("No {type} found.")
+                raise TimeoutError(f"No {type} found.")
             self.LSL_inlet = StreamInlet(self.streams[0])
 
             # validation of inlet specs with arguments passed to innit
@@ -51,11 +51,11 @@ class DataBuffer:
             self.step_time = step_time_SI
             # compute step length in terms of NUMBER OF SAMPLES
             self.step_len = self.freq * self.step_time
-            number_of_samples_tbc = self.step_len #tbc --> "to be collected"
-            while number_of_samples_tbc:
-                samples, _ = self.LSL_inlet.pull_chunk(max_samples=number_of_samples_tbc)
+            number_of_samples_to_collect = self.step_len
+            while number_of_samples_to_collect:
+                samples, _ = self.LSL_inlet.pull_chunk(max_samples=number_of_samples_to_collect)
                 self.sliding_window.extend(samples)
-                number_of_samples_tbc -= len(samples)
+                number_of_samples_to_collect -= len(samples)
         except:
             pass
 
