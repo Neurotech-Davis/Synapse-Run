@@ -1,6 +1,7 @@
 from collections import deque
 import numpy as np
 from pylsl import StreamInlet, resolve_stream
+import logging #for buffered print
 
 class DataBuffer:
     def __init__(self, num_channels, device_freq_hz, window_time_SI = 1.0,):
@@ -54,7 +55,11 @@ class DataBuffer:
             number_of_samples_to_collect = self.step_len
             while number_of_samples_to_collect:
                 samples, _ = self.LSL_inlet.pull_chunk(max_samples=number_of_samples_to_collect)
+                print(f"pulled {samples} from LSL")
+                print("Adding to internal buffer")
                 self.sliding_window.extend(samples)
+                if len(self.sliding_window) == self.sliding_window.maxlen:
+                    print(f"leftmost {len(samples)} samples ejected to add {len(samples)} samples")
                 number_of_samples_to_collect -= len(samples)
         except:
             pass
