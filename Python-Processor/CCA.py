@@ -39,7 +39,7 @@ def build_reference_signals(freq_list, n_samples, sampling_rate, n_harmonics=2):
     
     return references  # list of arrays, each shape (2*n_harmonics, n_samples)
 
-def perform_CCA(data_buffer, reference_signals):
+def perform_CCA(data_buffer, reference_signals, freq_list):
     # regularization constant for the covariance matrices; the 'c' at the beginning
     # is to indicate that it is a constant (meaning, its value doesn't change throughout the runtime)
     cREG = 1e-6
@@ -67,4 +67,5 @@ def perform_CCA(data_buffer, reference_signals):
         rho = np.sqrt(np.max(eigenvalues))
         rhos.append(rho) 
 
-    return np.argmax(rhos)
+    index_of_freq = np.argmax(rhos) # returns the corresponding POSITION (index) of frequency in freq_list
+    return freq_list[index_of_freq]
