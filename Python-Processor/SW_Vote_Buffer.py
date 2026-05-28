@@ -1,4 +1,4 @@
-from collections import deque
+from collections import deque, Counter
 from pylsl import StreamInfo, StreamOutlet
 import numpy as np
 
@@ -31,11 +31,10 @@ class VoteBuffer:
             print(f"Unexpected error during connection: {e}")
             raise
 
-    def pull_command(self, cca_index):
-        """
-        Receives CCA index every 40ms, appends to vote window.
-        """
-        self.vote_window.append(cca_index)
+    def pull_command(self, freq):
+        if freq not in self.freq_list:
+            raise ValueError(f"Frequency {freq} not in freq_list {self.freq_list}")
+        self.vote_window.append(freq)
 
     def vote(self):
         """
@@ -44,15 +43,20 @@ class VoteBuffer:
         if len(self.vote_window) < self.vote_window_len:
             self.winning_freq = None
             self.vote_counts = None
-            return
+            print("Not enough commands yet...returning None")
+            return None
 
-        self.vote_counts = np.bincount(list(self.vote_window), minlength=len(self.freq_list))
-        best = np.argmax(self.vote_counts)
+        print("Counting votes...")
+        self.vote_counts = Counter(self.vote_window)
+        best_freq, best_count = self.vote_counts.most_common(1)[0]
 
-        if self.vote_counts[best] / self.vote_window_len > self.vote_threshold:
-            self.winning_freq = self.freq_list[best]
+        if best_count / self.vote_window_len > self.vote_threshold:
+            self.winning_freq = best_freq
         else:
             self.winning_freq = None
+        
+        print("Votes counted")
+        return self.winning_freq
 
     def push_command(self):
         """

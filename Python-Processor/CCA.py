@@ -1,6 +1,8 @@
 import numpy as np
+from math import pi
+from SW_Data_Buffer import DataBuffer
 
-def build_reference_signals(freq_list, n_samples, sampling_rate, n_harmonics=2):
+def build_reference_signals(freq_list, n_samples, sampling_rate_hz, n_harmonics=2):
     # if works sus, try n_harmonics=3
     """
     the whole matrix X:
@@ -27,25 +29,26 @@ def build_reference_signals(freq_list, n_samples, sampling_rate, n_harmonics=2):
     cos(2 x 17t) [ 0.66,  -0.14,  -0.91,   ...,  0.66    ]   ← harmonic 2 cosine
 
     """
-    t = np.arange(1, n_samples + 1) / sampling_rate
+    t = np.arange(1, n_samples + 1) / sampling_rate_hz
     references = []
     
     for freq in freq_list:
         Y = []
         for h in range(1, n_harmonics + 1):
-            Y.append(np.sin(2 * np.pi * h * freq * t))
-            Y.append(np.cos(2 * np.pi * h * freq * t))
+            Y.append(np.sin(2 * pi * h * freq * t))
+            Y.append(np.cos(2 * pi * h * freq * t))
         references.append(np.array(Y))
     
     return references  # list of arrays, each shape (2*n_harmonics, n_samples)
 
-def perform_CCA(data_buffer, reference_signals, freq_list):
-    # regularization constant for the covariance matrices; the 'c' at the beginning
-    # is to indicate that it is a constant (meaning, its value doesn't change throughout the runtime)
-    cREG = 1e-6
+def perform_CCA(data_buffer:DataBuffer, reference_signals, freq_list):
+    
+    cREG = 1e-6 # regularization constant for the covariance matrices; the 'c' at the beginning
+        # is to indicate that it is a constant (meaning, its value doesn't change throughout the runtime)
+    
     # X shape: (n_channels, n_samples)
     # Y shape: (2*n_harmonics, n_samples)
-    X = data_buffer
+    X = np.array(data_buffer.ret_sliding_window()).T # convert deque to numpy array (n_channels, n_samples)
     Y = reference_signals
     n = X.shape[1] # (9, 250) -> shape[0] = 9, shape[1] = 250 -> returns 250
     
