@@ -1,0 +1,13 @@
+1. Center X and Y (remove mean)
+        ↓
+2. Compute covariance matrices:
+        Cxx = X @ X.T   (n_channels × n_channels)
+        Cyy = Y @ Y.T   (2*n_harmonics × 2*n_harmonics)
+        Cxy = X @ Y.T   (n_channels × 2*n_harmonics)
+        ↓
+3. Form the matrix:
+        M = inv(Cxx) @ Cxy @ inv(Cyy) @ Cyx
+        ↓
+4. Largest eigenvalue of M = squared maximum canonical correlation
+        ↓
+5. Take sqrt → correlation coefficient ρ (between 0 and 1)
