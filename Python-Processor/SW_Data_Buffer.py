@@ -10,7 +10,7 @@ class DataBuffer:
         self.window_time = window_time_secs
 
         # compute window length in terms of NUMBER OF SAMPLES
-        self.window_len = self.freq * self.window_time
+        self.window_len = int(self.freq * self.window_time)
 
         # create an internal deque that implements the sliding window structure
         self.sliding_window = deque(maxlen = self.window_len)
